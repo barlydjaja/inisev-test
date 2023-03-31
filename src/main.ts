@@ -33,7 +33,7 @@ const store = createStore({
             ],
             modal: {
                 isOpen: false,
-                emailId: 1,
+                emailId: 0,
             },
             isCheckedAll: false
         }
@@ -51,10 +51,27 @@ const store = createStore({
             const emailIdx = state.emails.findIndex(email => email.id === id)
             state.emails[emailIdx].isSelected = !state.emails[emailIdx].isSelected
         },
-        markSelectedAll(state) {
+        markSelectedAll(state, {name, bool}) {
+            if (typeof bool === 'boolean') {
+                if (bool) state.emails.forEach(email => email.isSelected = true)
+                else state.emails.forEach(email => email.isSelected = false)
+                return
+            }
             if (state.emails.some(email => !email.isSelected)) {
-                state.emails.forEach(email => email.isSelected = true)
+                state.emails.forEach(email => {
+                    if (name === 'Inbox' && email.isInbox) {
+                        email.isSelected = true
+                        return
+                    }
+                    if (name === 'Archive' && !email.isInbox) {
+                        email.isSelected = true
+                        return
+                    }
+                })
             } else {
+                if (!state.isCheckedAll) {
+                    return
+                }
                 state.emails.forEach(email => email.isSelected = false)
             }
         },

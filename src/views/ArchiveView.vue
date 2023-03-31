@@ -2,52 +2,49 @@
 import CheckBox from "@/components/CheckBox.vue";
 import { defineComponent } from 'vue'
 import EmailContent from "@/components/EmailContent.vue";
+import MarkRead from "@/components/MarkRead.vue";
+import MarkInbox from "@/components/MarkInbox.vue";
 
 export default defineComponent({
   components: {
+    MarkInbox,
+    MarkRead,
     EmailContent,
     CheckBox,
   },
   methods: {
     onCheckboxClickAll() {
-      this.$store.commit('markSelectedAll')
-      this.$store.commit('toggleCheckedAll', true)
+      this.$store.commit('markSelectedAll', {name: 'Archive'})
+      if (this.isCheckedAll) {
+        this.$store.commit('toggleCheckedAll', false)
+      } else {
+        this.$store.commit('toggleCheckedAll', true)
+      }
     },
     handleOpenModal(id: number) {
       this.$store.commit('toggleModal', id)
     },
-    markRead() {
-      this.currentMarkedEmails.forEach((markEmail: { id: number; }) => {
-        this.$store.commit('markRead', markEmail.id)
-        this.$store.commit('toggleCheckedAll', false)
-      })
-    },
-    markInbox() {
-      this.currentMarkedEmails.forEach((markEmail: { id: number; }) => {
-        this.$store.commit('toInbox', markEmail.id)
-        this.$store.commit('toggleCheckedAll', false)
-      })
-    }
   },
   computed: {
     emailsArchived() {
       return this.$store.state.emails.filter((email: { isInbox: boolean; }) => !email.isInbox)
     },
-    currentMarkedEmails(): any {
-      return this.$store.state.emails.filter((email: { isSelected: boolean; }) => email.isSelected)
-    },
     isCheckedAll(): boolean {
       return this.$store.state.isCheckedAll
     }
   },
+  created() {
+    this.$store.commit('toggleCheckedAll', false)
+    this.$store.commit('markSelectedAll', {name: 'Archive', bool: false})
+  }
 })
 </script>
 
 <template>
   <nav class="inbox__navigation">
     <CheckBox :isChecked="isCheckedAll" @onCheckboxClick="onCheckboxClickAll"/>
-    <button @click="markRead">Mark as read (r)</button>
-    <button @click="markInbox">Inbox (i)</button>
+    <MarkRead/>
+    <MarkInbox/>
   </nav>
   <main class="inbox__content">
     <EmailContent v-for="email in emailsArchived"

@@ -1,28 +1,20 @@
 <script lang="ts">
 import {defineComponent} from "vue";
+import MarkRead from "@/components/MarkRead.vue";
+import MarkArchive from "@/components/MarkArchive.vue";
+import MarkInbox from "@/components/MarkInbox.vue";
 
 export default defineComponent({
+  components: {MarkInbox, MarkArchive, MarkRead},
   methods: {
     handleCloseModal() {
       this.$store.commit('toggleModal', 0)
     },
-    markRead() {
-      this.$store.commit('markRead', this.$store.state.modal.emailId)
-    },
-    markArchive() {
-      this.$store.commit('toArchive', this.$store.state.modal.emailId)
-    },
-    markInbox() {
-      this.$store.commit('toInbox', this.$store.state.modal.emailId)
-    }
   },
   computed: {
     emailDetails() {
       return this.$store.state.emails.find((email: { id: number; }) => email.id === this.$store.state.modal.emailId)
     },
-    currentMarkedEmails(): any {
-      return this.$store.state.emails.filter((email: { isSelected: boolean; }) => email.isSelected)
-    }
   }
 })
 </script>
@@ -33,9 +25,9 @@ export default defineComponent({
     <div class="modal__content" @click="handleCloseModal">
       <div class="modal__btn--close">Close (Esc)</div>
       <div class="modal__btn--other">
-        <button @click="markRead">Mark as read (r)</button>
-        <button @click="markArchive" v-if="emailDetails.isInbox">Archive (a)</button>
-        <button @click="markInbox" v-else>Inbox (i)</button>
+        <MarkRead/>
+        <MarkArchive v-if="emailDetails.isInbox"/>
+        <MarkInbox v-else/>
       </div>
       <div class="modal__title">{{emailDetails.title}}</div>
       <div class="modal__desc">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ad aperiam aspernatur

@@ -2,31 +2,27 @@
 import CheckBox from "@/components/CheckBox.vue";
 import { defineComponent } from 'vue'
 import EmailContent from "@/components/EmailContent.vue";
+import MarkRead from "@/components/MarkRead.vue";
+import MarkArchive from "@/components/MarkArchive.vue";
 
 export default defineComponent({
   components: {
+    MarkArchive,
+    MarkRead,
     EmailContent,
     CheckBox,
   },
   methods: {
     onCheckboxClickAll() {
-      this.$store.commit('markSelectedAll')
-      this.$store.commit('toggleCheckedAll', true)
+      this.$store.commit('markSelectedAll', {name: 'Inbox'})
+      if (this.isCheckedAll) {
+        this.$store.commit('toggleCheckedAll', false)
+      } else {
+        this.$store.commit('toggleCheckedAll', true)
+      }
     },
     handleOpenModal(id: number) {
       this.$store.commit('toggleModal', id)
-    },
-    markRead() {
-      this.currentMarkedEmails.forEach(markEmail => {
-        this.$store.commit('markRead', markEmail.id)
-        this.$store.commit('toggleCheckedAll', false)
-      })
-    },
-    markArchive() {
-      this.currentMarkedEmails.forEach(markEmail => {
-        this.$store.commit('toArchive', markEmail.id)
-      })
-      this.$store.commit('toggleCheckedAll', false)
     },
     selectedCount() {
       return this.$store.state.emails.filter((email: { isSelected: boolean; }) => email.isSelected).length
@@ -36,21 +32,23 @@ export default defineComponent({
     emailsInbox() {
       return this.$store.state.emails.filter((email: { isInbox: any; }) => email.isInbox)
     },
-    currentMarkedEmails(): any {
-      return this.$store.state.emails.filter(email => email.isSelected)
-    },
     isCheckedAll(): boolean {
       return this.$store.state.isCheckedAll
     }
   },
+  created() {
+    this.$store.commit('toggleCheckedAll', false)
+    this.$store.commit('markSelectedAll', {name: 'Inbox', bool: false})
+  }
 })
 </script>
 
 <template>
   <nav class="inbox__navigation">
+<!--    TODO: bug when selecting all but no email at current section-->
     <CheckBox :isChecked="isCheckedAll" @onCheckboxClick="onCheckboxClickAll"/>
-    <button @click="markRead">Mark as read (r)</button>
-    <button @click="markArchive">Archive (a)</button>
+    <MarkRead/>
+    <MarkArchive/>
   </nav>
   <main class="inbox__content">
     <EmailContent v-for="email in emailsInbox"
