@@ -1,9 +1,13 @@
 import {createApp} from 'vue'
-import {createStore} from "vuex";
+import {createStore, Store} from "vuex";
 import App from './App.vue'
 import router from './router'
 
 import './assets/main.scss'
+import type {IStore} from "@/interface/store.interface";
+import type {InjectionKey} from 'vue'
+
+export const key: InjectionKey<Store<IStore>> = Symbol()
 
 const store = createStore({
     state () {
@@ -98,6 +102,6 @@ const store = createStore({
 
 const app = createApp(App)
 
-app.use(store).use(router)
+app.use(store, key).use(router)
 
 app.mount('#app')

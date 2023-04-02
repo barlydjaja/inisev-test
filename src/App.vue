@@ -3,75 +3,81 @@ import { RouterLink, RouterView } from 'vue-router'
 import NavButton from "@/components/NavButton.vue";
 import {defineComponent} from "vue";
 import Modal from "@/components/ModalEmail.vue";
+import {mapMutations, mapState} from "vuex";
+import type {IMail, IStore} from "@/interface/store.interface";
 export default defineComponent({
   components: {Modal, NavButton, RouterLink, RouterView},
   methods: {
-    markRead(id?: number) {
+    ...mapMutations([
+        'markRead',
+        'toggleCheckedAll',
+        'toArchive',
+        'toInbox',
+        'closeModal'
+    ]),
+    markReadMail(id?: number) {
       if (typeof id === 'number') {
-        this.$store.commit('markRead', id)
-        this.$store.commit('toggleCheckedAll', false)
+        this.markRead(id)
+        this.toggleCheckedAll(false)
         this.closeModal()
         return
       }
       this.currentMarkedEmails.forEach(markEmail => {
-        this.$store.commit('markRead', markEmail.id)
-        this.$store.commit('toggleCheckedAll', false)
+        this.markRead(markEmail.id)
+        this.toggleCheckedAll(false)
       })
     },
     markArchive(id?: number) {
       if (typeof id === 'number') {
-        this.$store.commit('toArchive', id)
-        this.$store.commit('toggleCheckedAll', false)
-        this.closeModal()
-        return
-      }
-      this.currentMarkedEmails.forEach(markEmail => {
-        this.$store.commit('toArchive', markEmail.id)
-        this.$store.commit('toggleCheckedAll', false)
-      })
-    },
-    markInbox(id?: number) {
-      if (typeof id === 'number') {
-        this.$store.commit('toInbox', id)
-        this.$store.commit('toggleCheckedAll', false)
+        this.toArchive(id)
+        this.toggleCheckedAll(false)
         this.closeModal()
         return
       }
       this.currentMarkedEmails.forEach((markEmail: { id: number; }) => {
-        this.$store.commit('toInbox', markEmail.id)
-        this.$store.commit('toggleCheckedAll', false)
+        this.toArchive(markEmail.id)
+        this.toggleCheckedAll(false)
       })
     },
-    closeModal() {
-      this.$store.commit('closeModal')
-    }
-  },
-  computed: {
-    inboxCount() {
-      return this.$store.state.emails.filter((email: { isInbox: boolean; }) => email.isInbox).length
-    },
-    archiveCount() {
-      return this.$store.state.emails.filter((email: { isInbox: boolean; }) => !email.isInbox).length
-    },
-    isModalOpen() {
-      return this.$store.state.modal.isOpen
-    },
-    selectedCount() {
-      return this.$store.state.emails.filter((email: { isSelected: boolean; }) => email.isSelected).length
-    },
-    currentMarkedEmails() {
-      return this.$store.state.emails.filter(email => email.isSelected)
-    },
-    emailDetails() {
-      return this.$store.state.emails.find((email: { id: number; }) => email.id === this.$store.state.modal.emailId)
+    markInbox(id?: number) {
+      if (typeof id === 'number') {
+        this.toInbox(id)
+        this.toggleCheckedAll(false)
+        this.closeModal()
+        return
+      }
+      this.currentMarkedEmails.forEach((markEmail: { id: number; }) => {
+        this.toInbox(markEmail.id)
+        this.toggleCheckedAll(false)
+      })
     },
   },
+  computed: mapState({
+    inboxCount({emails}: IStore) {
+      return emails.filter((email: { isInbox: boolean; }) => email.isInbox).length
+    },
+    archiveCount({emails}: IStore) {
+      return emails.filter((email: { isInbox: boolean; }) => !email.isInbox).length
+    },
+    isModalOpen({modal}: IStore) {
+      return modal.isOpen
+    },
+    selectedCount({emails}: IStore) {
+      return emails.filter((email: { isSelected: boolean; }) => email.isSelected).length
+    },
+    currentMarkedEmails({emails}: IStore) {
+      return emails.filter((email: { isSelected: boolean; }) => email.isSelected)
+    },
+    emailDetails({emails, modal}: IStore): IMail {
+      return emails.find((email: { id: number; }) => email.id === modal.emailId) as IMail
+    },
+  }),
   created() {
     window.addEventListener('keyup', (event) => {
       const {key} = event
       if (!this.isModalOpen) {
         switch (key) {
-          case 'r': this.markRead()
+          case 'r': this.markReadMail()
             return
           case 'a': this.markArchive()
             return
@@ -80,7 +86,7 @@ export default defineComponent({
         }
       } else {
         switch (key) {
-          case 'r': this.markRead(this.emailDetails.id)
+          case 'r': this.markReadMail(this.emailDetails.id)
             return
           case 'a':
             if (this.$route.name === 'Inbox') this.markArchive(this.emailDetails.id)

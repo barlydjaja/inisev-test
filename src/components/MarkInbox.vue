@@ -1,17 +1,22 @@
 <script lang="ts">
 import {defineComponent} from "vue";
+import {mapMutations} from "vuex";
 
 export default defineComponent({
   methods: {
+    ...mapMutations([
+        'toInbox',
+        'toggleCheckedAll'
+    ]),
     markInbox() {
       if (this.$store.state.modal.isOpen) {
-        this.$store.commit('toInbox', this.$store.state.modal.emailId)
+        this.toInbox(this.$store.state.modal.emailId)
         return
       }
       this.currentMarkedEmails.forEach((markEmail: { id: number; }) => {
-        this.$store.commit('toInbox', markEmail.id)
+        this.toInbox(markEmail.id)
       })
-      this.$store.commit('toggleCheckedAll', false)
+      this.toggleCheckedAll(false)
     }
   },
   computed: {

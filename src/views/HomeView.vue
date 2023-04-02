@@ -4,6 +4,8 @@ import { defineComponent } from 'vue'
 import EmailContent from "@/components/EmailContent.vue";
 import MarkRead from "@/components/MarkRead.vue";
 import MarkArchive from "@/components/MarkArchive.vue";
+import {mapMutations, mapState} from "vuex";
+import type {IStore} from "@/interface/store.interface";
 
 export default defineComponent({
   components: {
@@ -13,39 +15,40 @@ export default defineComponent({
     CheckBox,
   },
   methods: {
+    ...mapMutations([
+       'markSelectedAll',
+       'toggleCheckedAll',
+       'toggleModal'
+    ]),
     onCheckboxClickAll() {
-      this.$store.commit('markSelectedAll', {name: 'Inbox'})
+      this.markSelectedAll({name: 'Inbox'})
       if (this.isCheckedAll) {
-        this.$store.commit('toggleCheckedAll', false)
+        this.toggleCheckedAll(false)
       } else {
-        this.$store.commit('toggleCheckedAll', true)
+        this.toggleCheckedAll(true)
       }
     },
     handleOpenModal(id: number) {
-      this.$store.commit('toggleModal', id)
-    },
-    selectedCount() {
-      return this.$store.state.emails.filter((email: { isSelected: boolean; }) => email.isSelected).length
+      this.toggleModal(id)
     },
   },
-  computed: {
-    emailsInbox() {
-      return this.$store.state.emails.filter((email: { isInbox: any; }) => email.isInbox)
+  computed: mapState({
+    emailsInbox({emails}: IStore) {
+      return emails.filter((email: { isInbox: any; }) => email.isInbox)
     },
-    isCheckedAll(): boolean {
-      return this.$store.state.isCheckedAll
+    isCheckedAll({isCheckedAll}: IStore): boolean {
+      return isCheckedAll
     }
-  },
+  }),
   created() {
-    this.$store.commit('toggleCheckedAll', false)
-    this.$store.commit('markSelectedAll', {name: 'Inbox', bool: false})
+    this.toggleCheckedAll(false)
+    this.markSelectedAll({name: 'Inbox', bool: false})
   }
 })
 </script>
 
 <template>
   <nav class="inbox__navigation">
-<!--    TODO: bug when selecting all but no email at current section-->
     <CheckBox :isChecked="isCheckedAll" @onCheckboxClick="onCheckboxClickAll"/>
     <MarkRead/>
     <MarkArchive/>

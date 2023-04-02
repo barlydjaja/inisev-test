@@ -4,6 +4,8 @@ import { defineComponent } from 'vue'
 import EmailContent from "@/components/EmailContent.vue";
 import MarkRead from "@/components/MarkRead.vue";
 import MarkInbox from "@/components/MarkInbox.vue";
+import {mapMutations, mapState} from "vuex";
+import type {IStore} from "@/interface/store.interface";
 
 export default defineComponent({
   components: {
@@ -13,29 +15,34 @@ export default defineComponent({
     CheckBox,
   },
   methods: {
+    ...mapMutations([
+        'markSelectedAll',
+        'toggleCheckedAll',
+        'toggleModal'
+    ]),
     onCheckboxClickAll() {
-      this.$store.commit('markSelectedAll', {name: 'Archive'})
+      this.markSelectedAll({name: 'Archive'})
       if (this.isCheckedAll) {
-        this.$store.commit('toggleCheckedAll', false)
+        this.toggleCheckedAll(false)
       } else {
-        this.$store.commit('toggleCheckedAll', true)
+        this.toggleCheckedAll(true)
       }
     },
     handleOpenModal(id: number) {
-      this.$store.commit('toggleModal', id)
+      this.toggleModal(id)
     },
   },
-  computed: {
-    emailsArchived() {
-      return this.$store.state.emails.filter((email: { isInbox: boolean; }) => !email.isInbox)
+  computed: mapState({
+    emailsArchived({emails}: IStore) {
+      return emails.filter((email: { isInbox: boolean; }) => !email.isInbox)
     },
-    isCheckedAll(): boolean {
-      return this.$store.state.isCheckedAll
+    isCheckedAll({isCheckedAll}: IStore): boolean {
+      return isCheckedAll
     }
-  },
+  }),
   created() {
-    this.$store.commit('toggleCheckedAll', false)
-    this.$store.commit('markSelectedAll', {name: 'Archive', bool: false})
+    this.toggleCheckedAll(false)
+    this.markSelectedAll({name: 'Archive', bool: false})
   }
 })
 </script>
